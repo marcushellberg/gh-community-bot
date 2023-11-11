@@ -9,7 +9,6 @@ const slackURL = process.env.SLACK_WEBHOOK_URL!;
  */
 app.post('/webhook', express.json({type: 'application/json'}), async (request, response) => {
     response.status(202).send('Accepted');
-    console.log('Received GitHub webhook event');
     const githubEvent = request.headers['x-github-event'];
 
     if (githubEvent === 'issues' || githubEvent === 'pull_request') {
@@ -68,16 +67,16 @@ async function handleNotification(
 
     let message = '';
     if (action === 'opened' || action === 'reopened') {
-        message = `🔔 *<${user_url}|${user}> ${action} ${getArticle(item)}:* \n
-        Title: <${html_url}|${title}>
-        Repo: <${repository_url}|${repository_name}>
-    `;
+        message =
+            `🔔 *<${user_url}|${user}> ${action} ${getArticle(item)}:* \n
+            Title: <${html_url}|${title}>
+            Repo: <${repository_url}|${repository_name}>`.replace(/^\s+/gm, '');
     } else if (action === 'closed') {
         const timeOpenInDays = Math.round((new Date().getTime() - new Date(created_at).getTime()) / (1000 * 3600 * 24));
-        message = `🎉 *<${user_url}|${user}>'s ${item} was closed! (open ${timeOpenInDays} days)* \n
-        Title: <${html_url}|${title}>
-        Repo: <${repository_url}|${repository_name}> 
-    `;
+        message =
+            `🎉 *<${user_url}|${user}>'s ${item} was closed! (open ${timeOpenInDays} days)* \n
+            Title: <${html_url}|${title}>
+            Repo: <${repository_url}|${repository_name}>`.replace(/^\s+/gm, '');
     }
 
     if (message) {
@@ -101,7 +100,6 @@ function postSlackMessage(message: string) {
         console.error(error);
     });
 }
-
 
 
 const port = process.env.PORT || 3000;
