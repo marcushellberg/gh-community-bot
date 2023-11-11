@@ -9,6 +9,7 @@ const slackURL = process.env.SLACK_WEBHOOK_URL!;
  */
 app.post('/webhook', express.json({type: 'application/json'}), async (request, response) => {
     response.status(202).send('Accepted');
+
     const githubEvent = request.headers['x-github-event'];
 
     if (githubEvent === 'issues' || githubEvent === 'pull_request') {
@@ -27,7 +28,7 @@ app.post('/webhook', express.json({type: 'application/json'}), async (request, r
         const repository_name = data.repository.name;
         const repository_url = data.repository.html_url;
 
-        await handleNotification(user, action, title, html_url, user_url, created_at, item, repository_name, repository_url);
+        await createNotification(user, action, title, html_url, user_url, created_at, item, repository_name, repository_url);
     }
 });
 
@@ -43,7 +44,7 @@ async function isVaadinOrgMember(username: string) {
     return response.status === 204;
 }
 
-async function handleNotification(
+async function createNotification(
     user: string,
     action: string,
     title: string,
@@ -80,7 +81,6 @@ async function handleNotification(
     }
 
     if (message) {
-        console.log(message);
         postSlackMessage(message);
     }
 }
