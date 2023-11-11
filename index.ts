@@ -3,21 +3,34 @@ import express from "express";
 const app = express();
 const slackURL = process.env.SLACK_WEBHOOK_URL!;
 
-function postSlackMessage(message: string) {
-    fetch(slackURL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            text: message,
-            type: 'mrkdwn'
-        })
-    }).catch((error) => {
-        console.log('Error posting message to Slack');
-        console.error(error);
-    });
-}
+
+/**
+ * Handle incoming GitHub webhook events.
+ */
+app.post('/webhook', express.json({type: 'application/json'}), async (request, response) => {
+    response.status(202).send('Accepted');
+    console.log('Received GitHub webhook event');
+    const githubEvent = request.headers['x-github-event'];
+
+    if (githubEvent === 'issues' || githubEvent === 'pull_request') {
+        const isIssue = githubEvent === 'issues';
+        const data = request.body;
+        const user = isIssue ? data.issue.user.login : data.pull_request.user.login;
+
+        if (await isVaadinOrgMember(user)) return; // Only notify for non-Vaadin members
+
+        const action = data.action;
+        const title = isIssue ? data.issue.title : data.pull_request.title;
+        const html_url = isIssue ? data.issue.html_url : data.pull_request.html_url;
+        const user_url = isIssue ? data.issue.user.html_url : data.pull_request.user.html_url;
+        const created_at = isIssue ? data.issue.created_at : data.pull_request.created_at;
+        const item = isIssue ? 'issue' : 'PR';
+        const repository_name = data.repository.name;
+        const repository_url = data.repository.html_url;
+
+        await handleNotification(user, action, title, html_url, user_url, created_at, item, repository_name, repository_url);
+    }
+});
 
 async function isVaadinOrgMember(username: string) {
     const response = await fetch(`https://api.github.com/orgs/vaadin/members/${username}`, {
@@ -55,7 +68,7 @@ async function handleNotification(
 
     let message = '';
     if (action === 'opened' || action === 'reopened') {
-        message = `🔔 *<${user_url}|${user}> ${action} ${getArticle(item)}:*\n
+        message = `🔔 *<${user_url}|${user}> ${action} ${getArticle(item)}:* \n
         Title: <${html_url}|${title}>
         Repo: <${repository_url}|${repository_name}>
     `;
@@ -73,33 +86,23 @@ async function handleNotification(
     }
 }
 
-/**
- * Handle GitHub webhooks.
- */
-app.post('/webhook', express.json({type: 'application/json'}), async (request, response) => {
-    response.status(202).send('Accepted');
+function postSlackMessage(message: string) {
+    fetch(slackURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            text: message,
+            type: 'mrkdwn'
+        })
+    }).catch((error) => {
+        console.log('Error posting message to Slack');
+        console.error(error);
+    });
+}
 
-    const githubEvent = request.headers['x-github-event'];
 
-    if (githubEvent === 'issues' || githubEvent === 'pull_request') {
-        const isIssue = githubEvent === 'issues';
-        const data = request.body;
-        const user = isIssue ? data.issue.user.login : data.pull_request.user.login;
-
-        if (await isVaadinOrgMember(user)) return; // Only notify for non-Vaadin members
-
-        const action = data.action;
-        const title = isIssue ? data.issue.title : data.pull_request.title;
-        const html_url = isIssue ? data.issue.html_url : data.pull_request.html_url;
-        const user_url = isIssue ? data.issue.user.html_url : data.pull_request.user.html_url;
-        const created_at = isIssue ? data.issue.created_at : data.pull_request.created_at;
-        const item = isIssue ? 'issue' : 'PR';
-        const repository_name = data.repository.name;
-        const repository_url = data.repository.html_url;
-
-        await handleNotification(user, action, title, html_url, user_url, created_at, item, repository_name, repository_url);
-    }
-});
 
 const port = process.env.PORT || 3000;
 
