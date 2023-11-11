@@ -64,7 +64,7 @@ async function handleNotification(
     }
 
     // escape < and > in title
-    title = title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    title = title.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&/g, '&amp;');
 
     let message = '';
     if (action === 'opened' || action === 'reopened') {
