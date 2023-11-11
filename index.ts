@@ -43,12 +43,19 @@ async function handleNotification(
     repository_url: string
 ) {
 
+    function getArticle(word: string) {
+        const vowels = ['a', 'e', 'i', 'o', 'u'];
+        const firstLetter = word.charAt(0).toLowerCase();
+        const article = vowels.includes(firstLetter) ? 'an' : 'a';
+        return `${article} ${word}`;
+    }
+
     // escape < and > in title
     title = title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     let message = '';
     if (action === 'opened' || action === 'reopened') {
-        message = `🔔 *<${user_url}|${user}> ${action} an ${item}:*\n
+        message = `🔔 *<${user_url}|${user}> ${action} ${getArticle(item)}:*\n
         Title: <${html_url}|${title}>
         Repo: <${repository_url}|${repository_name}>
     `;
