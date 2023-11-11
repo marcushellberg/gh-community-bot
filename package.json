@@ -1,0 +1,16 @@
+{
+  "name": "gh-community-bot",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@flydotio/dockerfile": "latest",
+    "@types/express": "^4.17.21",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
