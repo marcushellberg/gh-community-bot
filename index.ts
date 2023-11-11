@@ -48,7 +48,7 @@ async function handleNotification(
 
     let message = '';
     if (action === 'opened' || action === 'reopened') {
-        message = `🔔 *<${user_url}|${user}> ${action} an ${item}:* \n
+        message = `🔔 *<${user_url}|${user}> ${action} an ${item}:*\n
         Title: <${html_url}|${title}>
         Repo: <${repository_url}|${repository_name}>
     `;
