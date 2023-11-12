@@ -55,13 +55,18 @@ function createNotificationMessage(githubEvent: string, data: any, eventData: an
 }
 
 function formatOpenReopenMessage(user_url: string, user: string, action: string, item: string, title: string, html_url: string, repository_name: string, repository_url: string): string {
-    return `🔔 *<${user_url}|${user}> ${action} ${getArticle(item)} ${item}:* \nTitle: <${html_url}|${title}>\nRepo: <${repository_url}|${repository_name}>`.trim();
+    return `🔔 *<${user_url}|${user}> ${action} ${getArticle(item)} ${item}:* 
+            Title: <${html_url}|${title}>
+            Repo: <${repository_url}|${repository_name}>`.replace(/^\s+/gm, '');
 }
 
 function formatClosedMessage(user_url: string, user: string, item: string, created_at: string, title: string, html_url: string, repository_name: string, repository_url: string, isMerged?: boolean): string {
     const timeOpenInDays = Math.round((new Date().getTime() - new Date(created_at).getTime()) / (1000 * 3600 * 24));
-    const yay = item === 'PR' ? (isMerged ? '🎉' : '😢') : '🎉';
-    return `${yay} *<${user_url}|${user}>'s ${item} was ${item === 'PR' ? (isMerged ? 'merged' : 'not merged') : 'closed'}:*\nOpen: ${timeOpenInDays} days\nTitle: <${html_url}|${title}>\nRepo: <${repository_url}|${repository_name}>`.trim();
+    const emoji = item === 'PR' ? (isMerged ? '🎉' : '😢') : '🎉';
+    return `${emoji} *<${user_url}|${user}>'s ${item} was ${item === 'PR' ? (isMerged ? 'merged' : 'not merged') : 'closed'}:*
+            Open: ${timeOpenInDays} days
+            Title: <${html_url}|${title}>
+            Repo: <${repository_url}|${repository_name}>`.replace(/^\s+/gm, '');
 }
 
 function getArticle(word: string): string {
