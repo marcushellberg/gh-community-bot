@@ -9,11 +9,10 @@ app.post('/webhook', express.json({type: 'application/json'}), async (request, r
     const githubEvent = request.headers['x-github-event'] as string;
 
     if (['issues', 'pull_request'].includes(githubEvent)) {
-        const action = request.body.action;
         const eventData = githubEvent === 'issues' ? request.body.issue : request.body.pull_request;
         if (await isVaadinOrgMember(eventData.user.login)) return;
 
-        await notifyEvent(githubEvent, action, request.body, eventData);
+        await notifyEvent(githubEvent, request.body, eventData);
     }
 });
 
@@ -27,16 +26,17 @@ async function isVaadinOrgMember(username: string) {
     return response.status === 204;
 }
 
-async function notifyEvent(githubEvent: string, action: string, data: any, eventData: any) {
-    const message = createNotificationMessage(githubEvent, action, data, eventData);
+async function notifyEvent(githubEvent: string, data: any, eventData: any) {
+    const message = createNotificationMessage(githubEvent, data, eventData);
     if (message) {
         postSlackMessage(message);
     }
 }
 
-function createNotificationMessage(githubEvent: string, action: string, data: any, eventData: any): string {
+function createNotificationMessage(githubEvent: string, data: any, eventData: any): string {
     const item = githubEvent === 'issues' ? 'issue' : 'PR';
     let title = escapeHtml(eventData.title);
+    const action = data.action;
     const html_url = eventData.html_url;
     const user_url = eventData.user.html_url;
     const repository_name = data.repository.name;
