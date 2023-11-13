@@ -10,7 +10,9 @@ app.post('/webhook', express.json({type: 'application/json'}), async (request, r
 
     if (['issues', 'pull_request'].includes(githubEvent)) {
         const eventData = githubEvent === 'issues' ? request.body.issue : request.body.pull_request;
-        if (await isVaadinOrgMember(eventData.user.login)) return;
+
+        let username = eventData.user.login;
+        if (isExcludedBot(username) || await isVaadinOrgMember(username)) return;
 
         await notifyEvent(githubEvent, request.body, eventData);
     }
@@ -24,6 +26,10 @@ async function isVaadinOrgMember(username: string) {
         }
     });
     return response.status === 204;
+}
+
+function isExcludedBot(username: string) {
+    return ['dependabot[bot]'].includes(username);
 }
 
 async function notifyEvent(githubEvent: string, data: any, eventData: any) {
