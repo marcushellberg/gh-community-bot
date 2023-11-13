@@ -2,6 +2,7 @@ import express from "express";
 
 const app = express();
 const slackURL = process.env.SLACK_WEBHOOK_URL!;
+const debug = process.env.DEBUG === 'true';
 
 app.post('/webhook', express.json({type: 'application/json'}), async (request, response) => {
     response.status(202).send('Accepted');
@@ -12,7 +13,14 @@ app.post('/webhook', express.json({type: 'application/json'}), async (request, r
         const eventData = githubEvent === 'issues' ? request.body.issue : request.body.pull_request;
 
         let username = eventData.user.login;
-        if (isExcludedBot(username) || await isVaadinOrgMember(username)) return;
+        let privateRepo = request.body.repository.private;
+
+        // Exclude private repos, bots, and Vaadin org members when not in debug mode
+        if (!debug && (
+            privateRepo ||
+            isExcludedBot(username) ||
+            await isVaadinOrgMember(username)
+        )) return;
 
         await notifyEvent(githubEvent, request.body, eventData);
     }
