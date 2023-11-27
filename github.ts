@@ -56,14 +56,12 @@ function createNotificationMessage(githubEvent: string, data: any, eventData: an
     const repository_url = data.repository.html_url;
     const isMerged = githubEvent === 'pull_request' && eventData.merged;
 
-    switch (action) {
-        case 'opened':
-        case 'reopened':
-            return formatOpenReopenMessage(user_url, eventData.user.login, action, item, title, html_url, repository_name, repository_url);
-        case 'closed':
-            return formatClosedMessage(user_url, eventData.user.login, item, eventData.created_at, title, html_url, repository_name, repository_url, isMerged);
-        default:
-            return '';
+    if(action === 'opened' || action === 'reopened') {
+        return formatOpenReopenMessage(user_url, eventData.user.login, action, item, title, html_url, repository_name, repository_url);
+    } else if (item === 'PR' && action === 'closed'){
+        return formatClosedMessage(user_url, eventData.user.login, item, eventData.created_at, title, html_url, repository_name, repository_url, isMerged);
+    } else {
+        return '';
     }
 }
 
