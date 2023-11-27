@@ -12,14 +12,13 @@ export async function handleGitHubWebhook(request: Request, response: Response) 
 
         let username = eventData.user.login;
         let privateRepo = request.body.repository.private;
-        console.log(`Received ${githubEvent} event from ${username} on ${request.body.repository.full_name}`);
+
         // Exclude private repos, bots, and Vaadin org members when not in debug mode
         if (!debug && (
             privateRepo ||
             isExcludedBot(username) ||
             await isVaadinOrgMember(username)
         )) return;
-        console.log(`Not excluded: ${username} on ${request.body.repository.full_name}`);
 
         await notifyEvent(githubEvent, request.body, eventData);
     }
